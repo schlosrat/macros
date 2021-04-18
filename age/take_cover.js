@@ -25,14 +25,14 @@ async function removeNamedEffect(ageSystemActor, effectData) {
     const item = ageSystemActor.data.effects.find(i =>i.label === effectData.label);
     if (item != undefined) {
         // Delete it if there is one
-        const deleted = await ageSystemActor.deleteEmbeddedEntity("ActiveEffect", item._id); // Deletes one EmbeddedEntity
+        await ageSystemActor.deleteEmbeddedEntity("ActiveEffect", item._id); // Deletes one EmbeddedEntity
     }
 }
 
 // define applyUniqueEffect function
 async function applyUniqueEffect(ageSystemActor, effectData) {
     // Look to see if there's already a Cover effect
-    removeNamedEffect(ageSystemActor, effectData);
+    await removeNamedEffect(ageSystemActor, effectData);
 
     // Create a new fresh one with the new settings
     await ageSystemActor.createEmbeddedEntity("ActiveEffect", effectData); 
@@ -112,12 +112,12 @@ async function takeCover () {
                         changes: [{
                             "key": "data.defense.total",
                             "mode": 2, // Mode 2 is for ADD.
-                            "value": coverVal,
+                            "value": coverVal+1,
                             "priority": 0
                         },{
                             "key": "data.defense.mod",
                             "mode": 2, // Mode 2 is for ADD.
-                            "value": coverVal,
+                            "value": coverVal+1,
                             "priority": 0
                         }]
                     };
