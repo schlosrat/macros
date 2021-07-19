@@ -16,12 +16,31 @@
 
 // define removeNamedEffect function
 async function removeNamedEffect(ageSystemActor, effectData) {
-    // Look to see if there's already a Cover effect
-    const item = ageSystemActor.data.effects.find(i =>i.label === effectData.label);
+    // Look to see if there's an effect with this label
+    const item = ageSystemActor.data.effects.find(i =>i.data.label === effectData.label);
     if (item != undefined) {
         // Delete it if there is one
-        const deleted = await ageSystemActor.deleteEmbeddedEntity("ActiveEffect", item._id); // Deletes one EmbeddedEntity
+        const deleted = await ageSystemActor.deleteEmbeddedDocuments("ActiveEffect", [item.id]); // Deletes one EmbeddedEntity
     }
+}
+
+/**
+ * Remove a condition (AGE System dependent)
+ * 
+ * @param {actor} thisActor
+ * @param {string} condId
+ */
+const removeCondition = async (thisActor, condId) => {
+    /* THIS IS THE EXAMPLE TO REMOVE A CONDITION - async function */
+    // This removes condition Active Effects - AGE System code will take care of checked/unchecked boxes and token statuses
+    let remove = [];
+    // this loop will capture all Active Effects causing the condId condition and delete all of them.
+    thisActor.effects.map(e => {
+        const isCondition = (e.data.flags?.["age-system"]?.type === "conditions") ? true : false;
+        const isId = (e.data.flags?.["age-system"]?.name === condId) ? true : false;
+        if (isCondition && isId) remove.push(e.data._id);
+    });
+    await thisActor.deleteEmbeddedDocuments("ActiveEffect", remove);
 }
 
 async function clearCover () {
@@ -29,7 +48,7 @@ async function clearCover () {
         const effectData = {
             label : "Cover",
             icon : "icons/svg/shield.svg",
-            duration: {rounds: 10},
+            duration: {rounds: 1},
             changes: [{
                 "key": "data.defense.total",
                 "mode": 2, // Mode 2 is for ADD.
@@ -44,8 +63,9 @@ async function clearCover () {
         };
         const selected = canvas.tokens.controlled;
         // console.log(selected)
-        selected.forEach(token => {
-            removeNamedEffect(token.actor, effectData);
+        selected.forEach(async (token) => {
+            await removeNamedEffect(token.actor, effectData);
+            await removeCondition(token.actor, "Cover");
         })
     }
 }
