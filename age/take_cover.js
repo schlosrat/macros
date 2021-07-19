@@ -21,28 +21,25 @@
 
 // define removeNamedEffect function
 async function removeNamedEffect(ageSystemActor, effectData) {
-    // Look to see if there's already a Cover effect
-    const item = ageSystemActor.data.effects.find(i =>i.label === effectData.label);
+    // Look to see if there's an effect with this label
+    const item = ageSystemActor.data.effects.find(i =>i.data.label === effectData.label);
     if (item != undefined) {
         // Delete it if there is one
-        await ageSystemActor.deleteEmbeddedEntity("ActiveEffect", item._id); // Deletes one EmbeddedEntity
+        const deleted = await ageSystemActor.deleteEmbeddedDocuments("ActiveEffect", [item.id]); // Deletes one EmbeddedEntity
     }
 }
 
 // define applyUniqueEffect function
 async function applyUniqueEffect(ageSystemActor, effectData) {
-    // Look to see if there's already a Cover effect
+    // Remove any existing effect with this label
     await removeNamedEffect(ageSystemActor, effectData);
 
-    // Create a new fresh one with the new settings
-    await ageSystemActor.createEmbeddedEntity("ActiveEffect", effectData); 
+    // Create a new effect with the new settings
+    await ageSystemActor.createEmbeddedDocuments("ActiveEffect", [effectData]); 
 }
 
 async function takeCover () {
-
     if (game.system.id === 'age-system') {
-        // import applyUniqueEffect from './applyUniqueEffect.js';
-        // import removeNamedEffect from './removeNamedEffect.js';
 
         let applyChanges = false;
         new Dialog({
@@ -112,12 +109,12 @@ async function takeCover () {
                         changes: [{
                             "key": "data.defense.total",
                             "mode": 2, // Mode 2 is for ADD.
-                            "value": coverVal+1,
+                            "value": coverVal,
                             "priority": 0
                         },{
                             "key": "data.defense.mod",
                             "mode": 2, // Mode 2 is for ADD.
-                            "value": coverVal+1,
+                            "value": coverVal,
                             "priority": 0
                         }]
                     };
